@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
+  basePath: "/project",
+  output: "export",  // <=== enables static exports
+  reactStrictMode: true,
   eslint: {
     ignoreDuringBuilds: true,
   },
