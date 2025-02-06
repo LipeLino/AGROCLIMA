@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { TimelineControl } from "./TimelineControl";
-import { WeatherStation, TimelineState } from "@/lib/types/weather";
+import { WeatherStation, TimelineState, WeatherData } from "@/lib/types/weather";
+import { fetchWeatherData } from "@/lib/services/api";
 
 const MapComponent = dynamic(() => import("./MapComponent"), {
   ssr: false,
@@ -16,31 +17,77 @@ const MapComponent = dynamic(() => import("./MapComponent"), {
 
 export function WeatherMap() {
   const [timelineState, setTimelineState] = useState<TimelineState>({
-    startDate: new Date(2024, 0, 1),
+    startDate: new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
     endDate: new Date(),
     currentDate: new Date(),
   });
+  const [weatherData, setWeatherData] = useState<WeatherData[]>([]);
+
+  useEffect(() => {
+    const loadWeatherData = async () => {
+      try {
+        const data = await fetchWeatherData(
+          "3424",
+          timelineState.startDate,
+          timelineState.endDate
+        );
+        setWeatherData(data);
+      } catch (error) {
+        console.error('Error fetching weather data:', error);
+      }
+    };
+
+    loadWeatherData();
+  }, [timelineState.startDate, timelineState.endDate]);
 
   const handleTimeChange = (date: Date) => {
-    // Update map data based on the selected date
-    console.log("Time changed:", date);
+    // Find the closest data point to the selected time
+    if (weatherData.length > 0) {
+      const selectedTime = date.getTime();
+      const closestData = weatherData.reduce((prev, curr) => {
+        const prevDiff = Math.abs(new Date(prev.timestamp).getTime() - selectedTime);
+        const currDiff = Math.abs(new Date(curr.timestamp).getTime() - selectedTime);
+        return prevDiff < currDiff ? prev : curr;
+      });
+      console.log('Selected data:', closestData);
+    }
   };
 
   const handleStationSelect = (stationId: string) => {
-    // Handle station selection
     console.log("Selected station:", stationId);
   };
 
   const handleExportData = () => {
-    // Generate CSV data
-    const csvContent = "data:text/csv;charset=utf-8,";
-    // Add CSV generation logic here
-    
-    // Create download link
-    const encodedUri = encodeURI(csvContent);
+    if (weatherData.length === 0) return;
+
+    const headers = [
+      "Data/Hora",
+      "Temperatura (°C)",
+      "Umidade (%)",
+      "Velocidade do Vento (km/h)",
+      "Radiação Solar (W/m²)",
+      "Precipitação (mm)",
+      "Evapotranspiração (mm)",
+    ];
+
+    const csvContent = [
+      headers.join(","),
+      ...weatherData.map(data => [
+        new Date(data.timestamp).toLocaleString(),
+        data.temperature.toFixed(1),
+        data.humidity.toFixed(1),
+        data.windSpeed.toFixed(1),
+        data.solarRadiation.toFixed(1),
+        data.precipitation.toFixed(1),
+        data.evapotranspiration.toFixed(1),
+      ].join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "weather_data.csv");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `dados_meteorologicos_${timelineState.startDate.toISOString().split('T')[0]}_${timelineState.endDate.toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
