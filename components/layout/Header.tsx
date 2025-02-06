@@ -32,7 +32,6 @@ export function Header() {
                   alt="Logo UEMG"
                   fill
                   className="object-contain"
-                  priority
                 />
               </div>
               
@@ -42,8 +41,7 @@ export function Header() {
                   src="public\fapemig-logo.png"
                   alt="Logo FAPEMIG"
                   fill
-                  className="object-contain"
-                  priority
+                  className="object-contain"                  
                 />
               </div>
             </div>
