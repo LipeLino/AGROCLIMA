@@ -17,7 +17,9 @@ export function Header() {
     <>
       <header
         className={cn(
-          "fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm z-50 shadow-sm transition-all duration-300 transform",
+          "fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm z-50 transition-all duration-300 transform",
+          "shadow-[0_4px_20px_-2px_rgba(0,0,0,0.1),0_8px_32px_-4px_rgba(0,0,0,0.1)]",
+          "border-b border-gray-100",
           isVisible ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
         )}
       >
@@ -28,20 +30,22 @@ export function Header() {
               {/* UEMG logo */}
               <div className="relative w-40 h-16">
                 <Image
-                  src="/uemg-logo.png"
+                  src="\uemg-logo.png"
                   alt="Logo UEMG"
                   fill
                   className="object-contain"
+                  priority
                 />
               </div>
               
               {/* FAPEMIG logo */}
               <div className="relative w-32 h-12">
                 <Image
-                  src="/fapemig-logo.png"
+                  src="\fapemig-logo.png"
                   alt="Logo FAPEMIG"
                   fill
-                  className="object-contain"                  
+                  className="object-contain"
+                  priority
                 />
               </div>
             </div>

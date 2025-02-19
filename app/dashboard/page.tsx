@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { MonitoringHeader } from "@/components/dashboard/MonitoringHeader";
 import { WeatherMap } from "@/components/dashboard/WeatherMap";
 import { Card } from "@/components/ui/card";
 import {
@@ -13,30 +14,73 @@ import {
   Waves,
 } from "lucide-react";
 import { fetchWeatherData } from "@/lib/services/api";
-import { WeatherData } from "@/lib/types/weather";
+import { WeatherData, MonitoringState } from "@/lib/types/weather";
+import { weatherStations } from "@/lib/data/stations";
+
+const REFRESH_INTERVAL = 60 * 60 * 1000; // 1 hour in milliseconds
 
 export default function DashboardPage() {
+  const [mounted, setMounted] = useState(false);
   const [currentData, setCurrentData] = useState<WeatherData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [monitoringState, setMonitoringState] = useState<MonitoringState>({
+    lastUpdate: new Date(),
+    selectedStation: weatherStations[0].id,
+    connectionType: "WIFI",
+    isLoading: true,
+    error: null,
+  });
 
   useEffect(() => {
-    const loadCurrentData = async () => {
-      try {
-        const endDate = new Date();
-        const startDate = new Date(endDate.getTime() - 1 * 60 * 60 * 1000); // 1 hour ago
-        const data = await fetchWeatherData("3424", startDate, endDate);
-        if (data.length > 0) {
-          setCurrentData(data[data.length - 1]);
-        }
-      } catch (error) {
-        console.error('Error fetching weather data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadCurrentData();
+    setMounted(true);
   }, []);
+
+  const loadCurrentData = async () => {
+    try {
+      setMonitoringState(prev => ({ ...prev, isLoading: true, error: null }));
+      
+      const station = weatherStations.find(s => s.id === monitoringState.selectedStation);
+      if (!station) throw new Error("Estação não encontrada");
+
+      const endDate = new Date();
+      const startDate = new Date(endDate.getTime() - 1 * 60 * 60 * 1000); // 1 hour ago
+      const data = await fetchWeatherData(station.deviceId, startDate, endDate);
+      
+      if (data.length > 0) {
+        setCurrentData(data[data.length - 1]);
+        setMonitoringState(prev => ({
+          ...prev,
+          lastUpdate: new Date(),
+          isLoading: false,
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching weather data:', error);
+      setMonitoringState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: "Erro ao carregar dados meteorológicos",
+      }));
+    }
+  };
+
+  useEffect(() => {
+    if (mounted) {
+      loadCurrentData();
+      const intervalId = setInterval(loadCurrentData, REFRESH_INTERVAL);
+      return () => clearInterval(intervalId);
+    }
+  }, [monitoringState.selectedStation, mounted]);
+
+  const handleStationChange = (stationId: string) => {
+    setMonitoringState(prev => ({
+      ...prev,
+      selectedStation: stationId,
+    }));
+  };
+
+  if (!mounted) {
+    return null;
+  }
 
   const parameters = [
     { icon: Thermometer, label: "Temperatura", value: currentData ? `${currentData.temperature.toFixed(1)}°C` : "..." },
@@ -51,9 +95,22 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gray-50">
       <DashboardHeader />
       <main className="container mx-auto px-4 py-8">
+        <MonitoringHeader
+          lastUpdate={monitoringState.lastUpdate}
+          selectedStation={monitoringState.selectedStation}
+          onStationChange={handleStationChange}
+          isLoading={monitoringState.isLoading}
+        />
+        
+        {monitoringState.error && (
+          <div className="mb-8 p-4 bg-red-50 text-red-600 rounded-lg">
+            {monitoringState.error}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           {parameters.map((param) => (
-            <Card key={param.label} className={`p-4 ${loading ? 'animate-pulse' : ''}`}>
+            <Card key={param.label} className={`p-4 ${monitoringState.isLoading ? 'animate-pulse' : ''}`}>
               <div className="flex items-center space-x-4">
                 <param.icon className="w-8 h-8 text-[#003366]" />
                 <div>
@@ -64,7 +121,10 @@ export default function DashboardPage() {
             </Card>
           ))}
         </div>
-        <WeatherMap />
+        <WeatherMap 
+          selectedStation={monitoringState.selectedStation}
+          onStationChange={handleStationChange}
+        />
       </main>
     </div>
   );

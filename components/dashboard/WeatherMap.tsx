@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { TimelineControl } from "./TimelineControl";
 import { WeatherStation, TimelineState, WeatherData } from "@/lib/types/weather";
 import { fetchWeatherData } from "@/lib/services/api";
+import { weatherStations } from "@/lib/data/stations";
 
 const MapComponent = dynamic(() => import("./MapComponent"), {
   ssr: false,
@@ -15,33 +16,40 @@ const MapComponent = dynamic(() => import("./MapComponent"), {
   ),
 });
 
-export function WeatherMap() {
+interface WeatherMapProps {
+  selectedStation: string;
+  onStationChange: (stationId: string) => void;
+}
+
+export function WeatherMap({ selectedStation, onStationChange }: WeatherMapProps) {
   const [timelineState, setTimelineState] = useState<TimelineState>({
-    startDate: new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+    startDate: new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000),
     endDate: new Date(),
     currentDate: new Date(),
   });
   const [weatherData, setWeatherData] = useState<WeatherData[]>([]);
 
-  useEffect(() => {
-    const loadWeatherData = async () => {
-      try {
-        const data = await fetchWeatherData(
-          "3424",
-          timelineState.startDate,
-          timelineState.endDate
-        );
-        setWeatherData(data);
-      } catch (error) {
-        console.error('Error fetching weather data:', error);
-      }
-    };
+  const loadWeatherData = async (stationId: string) => {
+    try {
+      const station = weatherStations.find(s => s.id === stationId);
+      if (!station) throw new Error("Estação não encontrada");
 
-    loadWeatherData();
-  }, [timelineState.startDate, timelineState.endDate]);
+      const data = await fetchWeatherData(
+        station.deviceId,
+        timelineState.startDate,
+        timelineState.endDate
+      );
+      setWeatherData(data);
+    } catch (error) {
+      console.error('Error fetching weather data:', error);
+    }
+  };
+
+  useEffect(() => {
+    loadWeatherData(selectedStation);
+  }, [selectedStation, timelineState.startDate, timelineState.endDate]);
 
   const handleTimeChange = (date: Date) => {
-    // Find the closest data point to the selected time
     if (weatherData.length > 0) {
       const selectedTime = date.getTime();
       const closestData = weatherData.reduce((prev, curr) => {
@@ -51,10 +59,6 @@ export function WeatherMap() {
       });
       console.log('Selected data:', closestData);
     }
-  };
-
-  const handleStationSelect = (stationId: string) => {
-    console.log("Selected station:", stationId);
   };
 
   const handleExportData = () => {
@@ -104,7 +108,8 @@ export function WeatherMap() {
       <div className="w-full h-[600px] rounded-lg overflow-hidden shadow-lg">
         <MapComponent
           selectedDate={timelineState.currentDate}
-          onStationSelect={handleStationSelect}
+          onStationSelect={onStationChange}
+          selectedStation={selectedStation}
         />
       </div>
     </div>

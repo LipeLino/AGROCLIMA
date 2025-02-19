@@ -3,27 +3,19 @@ import { LatLngTuple } from "leaflet";
 
 export const weatherStations: Omit<WeatherStation, 'data'>[] = [
   {
-    id: "frutal",
-    name: "Estação Central",
-    city: "Frutal",
-    coordinates: [-20.0333, -48.9356] as LatLngTuple,
+    id: "sao-francisco-sales",
+    name: "São Francisco de Sales",
+    city: "São Francisco de Sales",
+    state: "MG",
+    deviceId: "3424",
+    coordinates: [-19.8612, -49.7689] as LatLngTuple,
   },
   {
-    id: "uberaba",
-    name: "Estação Norte",
-    city: "Uberaba",
-    coordinates: [-19.7472, -47.9389] as LatLngTuple,
-  },
-  {
-    id: "uberlandia",
-    name: "Estação Leste",
-    city: "Uberlândia",
-    coordinates: [-18.9186, -48.2772] as LatLngTuple,
-  },
-  {
-    id: "iturama",
-    name: "Estação Oeste",
-    city: "Iturama",
-    coordinates: [-19.7289, -50.1967] as LatLngTuple,
+    id: "prata",
+    name: "Prata",
+    city: "Prata",
+    state: "MG",
+    deviceId: "4971",
+    coordinates: [-19.3088, -48.9276] as LatLngTuple,
   },
 ];

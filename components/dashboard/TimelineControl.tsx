@@ -50,54 +50,56 @@ export function TimelineControl({
   };
 
   return (
-    <Card className="p-4 space-y-4">
-      <DateRangePicker
-        startDate={timelineState.startDate}
-        endDate={timelineState.endDate}
-        onRangeChange={handleDateRangeChange}
-      />
-      
-      <div className="flex items-center justify-between">
-        <div className="space-x-2">
+    <div className="relative z-50">
+      <Card className="p-4 space-y-4 relative bg-white">
+        <DateRangePicker
+          startDate={timelineState.startDate}
+          endDate={timelineState.endDate}
+          onRangeChange={handleDateRangeChange}
+        />
+        
+        <div className="flex items-center justify-between">
+          <div className="space-x-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={togglePlayback}
+            >
+              {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={resetTimeline}
+            >
+              <SkipBack className="h-4 w-4" />
+            </Button>
+          </div>
           <Button
             variant="outline"
-            size="icon"
-            onClick={togglePlayback}
+            onClick={onExportData}
+            className="flex items-center gap-2"
           >
-            {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={resetTimeline}
-          >
-            <SkipBack className="h-4 w-4" />
+            <Download className="h-4 w-4" />
+            Exportar Dados
           </Button>
         </div>
-        <Button
-          variant="outline"
-          onClick={onExportData}
-          className="flex items-center gap-2"
-        >
-          <Download className="h-4 w-4" />
-          Exportar Dados
-        </Button>
-      </div>
-      
-      <div className="pt-2">
-        <Slider
-          defaultValue={[0]}
-          max={100}
-          step={1}
-          onValueChange={handleSliderChange}
-        />
-      </div>
-      
-      <div className="flex justify-between text-sm text-gray-500">
-        <span>{timelineState.startDate.toLocaleDateString()}</span>
-        <span>{timelineState.currentDate.toLocaleDateString()}</span>
-        <span>{timelineState.endDate.toLocaleDateString()}</span>
-      </div>
-    </Card>
+        
+        <div className="pt-2">
+          <Slider
+            defaultValue={[0]}
+            max={100}
+            step={1}
+            onValueChange={handleSliderChange}
+          />
+        </div>
+        
+        <div className="flex justify-between text-sm text-gray-500">
+          <span>{timelineState.startDate.toLocaleDateString()}</span>
+          <span>{timelineState.currentDate.toLocaleDateString()}</span>
+          <span>{timelineState.endDate.toLocaleDateString()}</span>
+        </div>
+      </Card>
+    </div>
   );
 }

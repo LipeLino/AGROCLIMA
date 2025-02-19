@@ -16,8 +16,10 @@ export default function Home() {
           <HeroSection />
 
           {/* Features Section */}
-          <section className="py-20 bg-gray-50">
-            <div className="container mx-auto px-4">
+          <section className="relative py-20 bg-gray-50">
+            <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-black/[0.075] to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-black/[0.075] to-transparent" />
+            <div className="container mx-auto px-4 relative">
               <h2 className="text-3xl font-bold text-center mb-16 text-[#003366]">
                 Recursos do Sistema
               </h2>
@@ -41,10 +43,29 @@ export default function Home() {
             </div>
           </section>
 
+          {/* Section Separator */}
+          <div className="relative h-16 bg-gradient-to-b from-gray-50 to-white">
+            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2">
+              <div className="container mx-auto px-4">
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-200"></div>
+                  </div>
+                  <div className="relative flex justify-center">
+                    <div className="px-4 bg-gradient-to-r from-gray-50 via-white to-gray-50">
+                      <div className="w-2 h-2 rounded-full bg-[#003366]/40"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <MonitoredParameters />
 
           {/* About Project Section */}
-          <section className="py-20 bg-[#003366] text-white">
+          <section className="relative py-20 bg-[#003366] text-white">
+            <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-black/[0.1] to-transparent" />
             <div className="container mx-auto px-4">
               <div className="max-w-3xl mx-auto text-center">
                 <h2 className="text-3xl font-bold mb-8">Sobre o Projeto</h2>
@@ -59,7 +80,8 @@ export default function Home() {
           </section>
 
           {/* Footer */}
-          <footer className="bg-gray-900 text-white py-8">
+          <footer className="relative bg-gray-900 text-white py-8">
+            <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-black/[0.15] to-transparent" />
             <div className="container mx-auto px-4 text-center">
               <p className="mb-4">© 2024 UEMG - Universidade do Estado de Minas Gerais</p>
               <p className="text-gray-400">Unidade Frutal</p>

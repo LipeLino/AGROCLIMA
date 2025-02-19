@@ -4,16 +4,18 @@ const API_BASE_URL = 'https://prod-api.plugfield.com.br';
 const API_KEY = 'LFtc9EgwlJ5hErrluKss68gWrHjyBWiE6oWI8pqb';
 const AUTH_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NjI0OTgsImFjY291bnRJZCI6NjU4OTAsInVzZXJuYW1lIjoiam9hby5maXNjaGVyQHVlbWcuYnIiLCJpYXQiOjE3MzQzNjIzMzF9.nKzch3EVu-7vIFwGo-I6cBKrOnOsbhwcsJ1hWMTsGeU';
 
+interface PlugfieldDataPoint {
+  timestamp: string;
+  value: number;
+}
+
 interface PlugfieldResponse {
-  data: {
-    temperature: number;
-    humidity: number;
-    windSpeed: number;
-    solarRadiation: number;
-    rain: number;
-    etc: number;
-    timestamp: string;
-  }[];
+  temperature: PlugfieldDataPoint[];
+  humidity: PlugfieldDataPoint[];
+  windSpeed: PlugfieldDataPoint[];
+  solarRadiation: PlugfieldDataPoint[];
+  rain: PlugfieldDataPoint[];
+  etc: PlugfieldDataPoint[];
 }
 
 export async function fetchWeatherData(deviceId: string, startDate: Date, endDate: Date): Promise<WeatherData[]> {
@@ -42,20 +44,70 @@ export async function fetchWeatherData(deviceId: string, startDate: Date, endDat
 
     const data: PlugfieldResponse = await response.json();
     
-    if (!data || !Array.isArray(data.data)) {
+    if (!data || !data.temperature || !Array.isArray(data.temperature)) {
       console.error('Invalid API response format:', data);
       throw new Error('Invalid API response format');
     }
-    
-    return data.data.map(item => ({
-      timestamp: item.timestamp,
-      temperature: Number(item.temperature) || 0,
-      humidity: Number(item.humidity) || 0,
-      windSpeed: Number(item.windSpeed) || 0,
-      solarRadiation: Number(item.solarRadiation) || 0,
-      precipitation: Number(item.rain) || 0,
-      evapotranspiration: Number(item.etc) || 0,
-    }));
+
+    // Create a map of timestamps to aggregate data points
+    const dataMap = new Map<string, WeatherData>();
+
+    // Process each data type and add to the map
+    data.temperature?.forEach(item => {
+      if (!dataMap.has(item.timestamp)) {
+        dataMap.set(item.timestamp, {
+          timestamp: item.timestamp,
+          temperature: 0,
+          humidity: 0,
+          windSpeed: 0,
+          solarRadiation: 0,
+          precipitation: 0,
+          evapotranspiration: 0,
+        });
+      }
+      dataMap.get(item.timestamp)!.temperature = item.value;
+    });
+
+    data.humidity?.forEach(item => {
+      if (dataMap.has(item.timestamp)) {
+        dataMap.get(item.timestamp)!.humidity = item.value;
+      }
+    });
+
+    data.windSpeed?.forEach(item => {
+      if (dataMap.has(item.timestamp)) {
+        dataMap.get(item.timestamp)!.windSpeed = item.value;
+      }
+    });
+
+    data.solarRadiation?.forEach(item => {
+      if (dataMap.has(item.timestamp)) {
+        dataMap.get(item.timestamp)!.solarRadiation = item.value;
+      }
+    });
+
+    data.rain?.forEach(item => {
+      if (dataMap.has(item.timestamp)) {
+        dataMap.get(item.timestamp)!.precipitation = item.value;
+      }
+    });
+
+    data.etc?.forEach(item => {
+      if (dataMap.has(item.timestamp)) {
+        dataMap.get(item.timestamp)!.evapotranspiration = item.value;
+      }
+    });
+
+    // Convert map to array and sort by timestamp
+    const weatherData = Array.from(dataMap.values()).sort((a, b) => 
+      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    );
+
+    if (weatherData.length === 0) {
+      throw new Error('No data available for the specified time range');
+    }
+
+    return weatherData;
   } catch (error) {
     console.error('API Error:', error instanceof Error ? error.message : 'Unknown error');
     // Return mock data for development
