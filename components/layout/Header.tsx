@@ -30,7 +30,7 @@ export function Header() {
               {/* UEMG logo */}
               <div className="relative w-40 h-16">
                 <Image
-                  src="\uemg-logo.png"
+                  src="/images/uemg-logo.png"
                   alt="Logo UEMG"
                   fill
                   className="object-contain"
@@ -41,7 +41,7 @@ export function Header() {
               {/* FAPEMIG logo */}
               <div className="relative w-32 h-12">
                 <Image
-                  src="\fapemig-logo.png"
+                  src="/images/fapemig-logo.png"
                   alt="Logo FAPEMIG"
                   fill
                   className="object-contain"

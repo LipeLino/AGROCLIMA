@@ -6,7 +6,7 @@ const nextConfig = {
   },
   images: { 
     unoptimized: true,
-    domains: ['www.uemg.br', 'fapemig.br', 'images.unsplash.com']
+    domains: ['images.unsplash.com']
   },
 };
 
